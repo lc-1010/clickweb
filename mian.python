@@ -1,0 +1,61 @@
+import os
+import time
+import pdb
+import pprint
+import PIL
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By 
+from selenium.common.exceptions import TimeoutException
+
+
+
+pp = pprint.PrettyPrinter(indent=4)
+driver = webdriver.Chrome()
+
+driver.get("https://www.baidu.com")
+
+xx = driver.find_element( By.ID ,"kw")
+xx.send_keys("无相之王")
+xx.submit()
+
+driver.implicitly_wait(130)
+results = driver.find_elements(By.XPATH,"//div[@id='content_left']//h3[@class='c-title t']/a")
+
+wait = WebDriverWait(driver,5)
+retry_count = 0
+max_retry = 3
+for res in results:
+    print(res.text)
+    url = res.get_attribute("href")
+    aria_role = res.get_attribute("aria-role")
+    print("URL:", url)
+    print("aria-role:", aria_role)
+    res.click()
+    # while retry_count < max_retry:
+    try:
+        g = wait.until(EC.title_contains(res.text))
+        print("res-is:"+res+"\n")
+                    
+    except TimeoutException:
+        retry_count +=1
+        time.sleep(1)
+        print("retry")
+        res.click()
+    break
+
+
+new_window_handle = driver.window_handles[-1]
+driver.switch_to.window(new_window_handle)
+ # 对整个页面进行截图并保存
+screenshot_path = os.path.join(os.getcwd(), "screenshot.png")
+print(screenshot_path)
+
+driver.save_screenshot(screenshot_path)
+
+
+print("\nok\n")
+time.sleep(6)
+
+driver.quit()
